@@ -36,10 +36,14 @@ object EGACaptcha {
         return Captcha(ByteArrayInputStream(out.toByteArray()), captcha.text(), "gif")
     }
 
-    private fun arithmeticCaptcha(): Captcha {
-        val captcha = ArithmeticCaptcha(130, 48)
+    private fun arithmeticCaptcha(hard: Boolean): Captcha {
+        val captcha = ArithmeticCaptcha(220, 48)
         val out = ByteArrayOutputStream()
-        captcha.supportAlgorithmSign(5)
+        if (hard) {
+            captcha.len = 4
+            captcha.supportAlgorithmSign(5)
+            captcha.setDifficulty(100)
+        }
         captcha.out(out)
         return Captcha(ByteArrayInputStream(out.toByteArray()), captcha.text(), "png")
     }
@@ -50,7 +54,8 @@ object EGACaptcha {
             2 -> simpleGifCaptcha()
             3 -> chineseCaptcha()
             4 -> chineseGifCaptcha()
-            5 -> arithmeticCaptcha()
+            5 -> arithmeticCaptcha(false)
+            6 -> arithmeticCaptcha(true)
             else -> simpleCaptcha()
         }
     }

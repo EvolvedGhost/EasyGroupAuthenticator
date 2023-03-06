@@ -112,7 +112,7 @@ object EGACommand : CompositeCommand(
 
     @SubCommand("welcome", "欢迎信息")
     @Description("开启并编辑本群新人欢迎信息")
-    suspend fun welcomeMessage(sender: CommandSender, message: MessageChain) {
+    suspend fun welcomeMessage(sender: CommandSender, vararg message: MessageChain) {
         if (!EGAFunction.isGroupMessage(sender)) return
         sender as GroupAwareCommandSender
         EGAFunction.welcomeMessage(sender, sender.group.id, message)

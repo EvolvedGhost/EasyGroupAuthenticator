@@ -5,6 +5,7 @@ import com.evolvedghost.data.GroupAuthSetting
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.GroupAwareCommandSender
 import net.mamoe.mirai.contact.isOperator
+import net.mamoe.mirai.message.code.MiraiCode.deserializeMiraiCode
 import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.buildMessageChain
@@ -64,7 +65,8 @@ object EGAFunction {
             2 -> "英文动态验证码"
             3 -> "中文验证码"
             4 -> "中文动态验证码"
-            5 -> "算术验证码"
+            5 -> "简单算术验证码"
+            6 -> "困难算术验证码"
             else -> null
         }
     }
@@ -74,7 +76,7 @@ object EGAFunction {
         val methodText = getMethodText(method)
         if (methodText == null) {
             val sb = StringBuilder("method可以设置为以下值：\n")
-            for (i in 0 until 5) {
+            for (i in 0 until 6) {
                 sb.append(i)
                 sb.append(" > ")
                 sb.append(getMethodText(i))
@@ -182,13 +184,26 @@ object EGAFunction {
         }
     }
 
-    suspend fun welcomeMessage(sender: CommandSender, groupId: Long, message: MessageChain) {
+    suspend fun welcomeMessage(sender: CommandSender, groupId: Long, message: Array<out MessageChain>) {
         val config = readGroupAuthSetting(groupId)
         config.welcomeSwitch = true
-        config.welcomeMessage = message.serializeToMiraiCode()
+        if (message.isEmpty()) {
+            sender.sendMessage(buildMessageChain {
+                +PlainText("已设置本群新人欢迎信息：\n")
+                +config.welcomeMessage.deserializeMiraiCode()
+            })
+            return
+        }
+        val sb = StringBuilder()
+        for (m in message) {
+            sb.append(m.serializeToMiraiCode())
+            sb.append("\n")
+        }
+        sb.deleteCharAt(sb.length - 1)
+        config.welcomeMessage = sb.toString()
         sender.sendMessage(buildMessageChain {
             +PlainText("已设置本群新人欢迎信息：\n")
-            +message
+            +config.welcomeMessage.deserializeMiraiCode()
         })
     }
 

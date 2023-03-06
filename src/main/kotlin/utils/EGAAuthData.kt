@@ -7,10 +7,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import net.mamoe.mirai.Bot
-import net.mamoe.mirai.contact.getMember
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.GroupMessageEvent
+import net.mamoe.mirai.event.events.MemberJoinEvent
 import net.mamoe.mirai.message.code.MiraiCode.deserializeMiraiCode
 import net.mamoe.mirai.message.data.PlainText
 import net.mamoe.mirai.message.data.at
@@ -47,7 +46,7 @@ class EGAAuthData {
                         val authInfo = iterator.next()
                         if (timestamp > authInfo.timeout) {
                             try {
-                                verifyFailure(authInfo.botId, authInfo.groupId, authInfo.userId)
+                                verifyFailure(authInfo.event)
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
@@ -59,6 +58,7 @@ class EGAAuthData {
     }
 
     data class AuthInfo(
+        val event: MemberJoinEvent,
         val botId: Long,
         val groupId: Long,
         val userId: Long,
@@ -99,76 +99,54 @@ class EGAAuthData {
             if (data == null) {
                 removeData(groupId, userId)
             } else if (answer.contains(data.answer)) {
-                verifySuccess(data.botId, groupId, userId)
+                verifySuccess(data.event)
             } else {
                 data.chance--
-                verifyFailure(data.botId, groupId, userId, data.chance)
+                verifyFailure(data.event, data.chance)
             }
         }
     }
 
-    private suspend fun verifySuccess(botId: Long, groupId: Long, userId: Long) {
-        removeData(groupId, userId)
-        val group = Bot.getInstance(botId).getGroup(groupId) ?: return
-        val member = group.getMember(userId) ?: return
-        val config = EGAFunction.readGroupAuthSetting(groupId)
-        if (config.welcomeSwitch) {
-            group.sendMessage(buildMessageChain {
-                member.at()
+    private suspend fun verifySuccess(event: MemberJoinEvent) {
+        removeData(event.groupId, event.member.id)
+        val config = EGAFunction.readGroupAuthSetting(event.groupId)
+        if (!config.welcomeSwitch) {
+            event.group.sendMessage(buildMessageChain {
+                event.member.at()
                 +PlainText(" 您已完成验证")
             })
         } else {
-            group.sendMessage(buildMessageChain {
-                member.at()
+            event.group.sendMessage(buildMessageChain {
+                event.member.at()
                 +PlainText("\n")
                 +config.welcomeMessage.deserializeMiraiCode()
             })
         }
     }
 
-    private suspend fun verifyFailure(botId: Long, groupId: Long, userId: Long, chance: Int) {
-        val group = Bot.getInstance(botId).getGroup(groupId)
-        if (group == null) {
-            removeData(groupId, userId)
-            return
-        }
-        val member = group.getMember(userId)
-        if (member == null) {
-            removeData(groupId, userId)
-            return
-        }
+    private suspend fun verifyFailure(event: MemberJoinEvent, chance: Int) {
         if (chance <= 0) {
-            removeData(groupId, userId)
-            group.sendMessage(buildMessageChain {
-                member.at()
+            removeData(event.groupId, event.member.id)
+            event.group.sendMessage(buildMessageChain {
+                event.member.at()
                 +PlainText(" 验证码全部错误，请重试")
             })
-            member.kick("请重试：验证码错误")
+            event.member.kick("请重试：验证码错误")
         } else {
-            group.sendMessage(buildMessageChain {
-                member.at()
+            event.group.sendMessage(buildMessageChain {
+                event.member.at()
                 +PlainText(" 验证码错误，你还有 $chance 次机会")
             })
         }
     }
 
-    private suspend fun verifyFailure(botId: Long, groupId: Long, userId: Long) {
-        val group = Bot.getInstance(botId).getGroup(groupId)
-        if (group == null) {
-            removeData(groupId, userId)
-            return
-        }
-        val member = group.getMember(userId)
-        if (member == null) {
-            removeData(groupId, userId)
-            return
-        }
-        removeData(groupId, userId)
-        group.sendMessage(buildMessageChain {
-            member.at()
+    private suspend fun verifyFailure(event: MemberJoinEvent) {
+        removeData(event.groupId, event.member.id)
+        event.group.sendMessage(buildMessageChain {
+            event.member.at()
             +PlainText(" 验证码超时，请重试")
         })
-        member.kick("请重试：验证码验证超时")
+        event.member.kick("请重试：验证码验证超时")
     }
 
     private fun removeData(groupId: Long, userId: Long) {

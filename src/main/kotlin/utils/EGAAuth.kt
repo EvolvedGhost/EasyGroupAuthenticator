@@ -30,6 +30,7 @@ val groupAuthInviteListener = GlobalEventChannel.subscribeAlways<MemberJoinEvent
         val image = event.group.uploadImage(captcha.image, captcha.format)
         authData.add(
             EGAAuthData.AuthInfo(
+                event,
                 event.bot.id,
                 event.groupId,
                 event.member.id,
@@ -71,6 +72,7 @@ val groupAuthActiveListener = GlobalEventChannel.subscribeAlways<MemberJoinEvent
         val image = event.group.uploadImage(captcha.image, captcha.format)
         authData.add(
             EGAAuthData.AuthInfo(
+                event,
                 event.bot.id,
                 event.groupId,
                 event.member.id,
