@@ -112,12 +112,12 @@ class EGAAuthData {
         val config = EGAFunction.readGroupAuthSetting(event.groupId)
         if (!config.welcomeSwitch) {
             event.group.sendMessage(buildMessageChain {
-                event.member.at()
+                +event.member.at()
                 +PlainText(" 您已完成验证")
             })
         } else {
             event.group.sendMessage(buildMessageChain {
-                event.member.at()
+                +event.member.at()
                 +PlainText("\n")
                 +config.welcomeMessage.deserializeMiraiCode()
             })
@@ -128,13 +128,13 @@ class EGAAuthData {
         if (chance <= 0) {
             removeData(event.groupId, event.member.id)
             event.group.sendMessage(buildMessageChain {
-                event.member.at()
+                +event.member.at()
                 +PlainText(" 验证码全部错误，请重试")
             })
             event.member.kick("请重试：验证码错误")
         } else {
             event.group.sendMessage(buildMessageChain {
-                event.member.at()
+                +event.member.at()
                 +PlainText(" 验证码错误，你还有 $chance 次机会")
             })
         }
@@ -143,7 +143,7 @@ class EGAAuthData {
     private suspend fun verifyFailure(event: MemberJoinEvent) {
         removeData(event.groupId, event.member.id)
         event.group.sendMessage(buildMessageChain {
-            event.member.at()
+            +event.member.at()
             +PlainText(" 验证码超时，请重试")
         })
         event.member.kick("请重试：验证码验证超时")

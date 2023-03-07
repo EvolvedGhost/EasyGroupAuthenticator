@@ -43,7 +43,7 @@ val groupAuthInviteListener = GlobalEventChannel.subscribeAlways<MemberJoinEvent
             +event.invitor.at()
             +PlainText(" 邀请了")
             +event.member.at()
-            +PlainText(" 加入本群，请输入以下验证码完成入群：\n")
+            +PlainText(" 加入本群，请输入以下验证码完成入群（如显示不全请点开）：\n")
             +image
         })
     } catch (e: Exception) {
@@ -83,7 +83,7 @@ val groupAuthActiveListener = GlobalEventChannel.subscribeAlways<MemberJoinEvent
         )
         event.group.sendMessage(buildMessageChain {
             +event.member.at()
-            +PlainText(" 加入本群，请输入以下验证码完成入群：\n")
+            +PlainText(" 加入本群，请输入以下验证码完成入群（如显示不全请点开）：\n")
             +image
         })
     } catch (e: Exception) {
