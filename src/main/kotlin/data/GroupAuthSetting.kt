@@ -8,6 +8,7 @@ data class GroupAuthSetting(
     var authMethod: Int = 0,
     var authChance: Int = 3,
     var authTime: Int = 300,
+    var levelLimit: Int = -1,
     var requestMethod: Int = 0,
     var requestKeywords: MutableList<String> = mutableListOf(),
     var requestNegativeKeywords: MutableList<String> = mutableListOf(),

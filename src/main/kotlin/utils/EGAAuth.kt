@@ -10,6 +10,7 @@ import net.mamoe.mirai.message.data.buildMessageChain
 val groupAuthInviteListener = GlobalEventChannel.subscribeAlways<MemberJoinEvent.Invite> { event ->
     try {
         val config = EGAFunction.readGroupAuthSetting(event.groupId)
+        if (EGAFunction.checkLevel(event, config)) return@subscribeAlways
         if (!config.enable) return@subscribeAlways
         if (config.blackList.contains(event.member.id)) {
             event.member.kick("你在本群黑名单中", true)
@@ -54,7 +55,8 @@ val groupAuthInviteListener = GlobalEventChannel.subscribeAlways<MemberJoinEvent
 val groupAuthActiveListener = GlobalEventChannel.subscribeAlways<MemberJoinEvent.Active> { event ->
     try {
         val config = EGAFunction.readGroupAuthSetting(event.groupId)
-        if(!config.enable) return@subscribeAlways
+        if (EGAFunction.checkLevel(event, config)) return@subscribeAlways
+        if (!config.enable) return@subscribeAlways
         if (config.blackList.contains(event.member.id)) {
             event.member.kick("你在本群黑名单中", true)
             event.group.sendMessage("黑名单用户${event.member.id}进群，已被踢出")

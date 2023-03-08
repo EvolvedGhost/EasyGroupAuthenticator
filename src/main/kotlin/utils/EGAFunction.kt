@@ -5,6 +5,8 @@ import com.evolvedghost.data.GroupAuthSetting
 import net.mamoe.mirai.console.command.CommandSender
 import net.mamoe.mirai.console.command.GroupAwareCommandSender
 import net.mamoe.mirai.contact.isOperator
+import net.mamoe.mirai.contact.nameCardOrNick
+import net.mamoe.mirai.event.events.MemberJoinEvent
 import net.mamoe.mirai.message.code.MiraiCode.deserializeMiraiCode
 import net.mamoe.mirai.message.data.MessageChain
 import net.mamoe.mirai.message.data.PlainText
@@ -107,6 +109,12 @@ object EGAFunction {
             config.authTime = time
             sender.sendMessage("已将本群验证次数设置为 $time 秒")
         }
+    }
+
+    suspend fun changeLevelLimit(sender: GroupAwareCommandSender, groupId: Long, level: Int) {
+        val config = readGroupAuthSetting(groupId)
+        config.levelLimit = level
+        sender.sendMessage("已将本群进群等级限制为 $level 级")
     }
 
     private fun getRequestText(method: Int): String? {
@@ -221,5 +229,15 @@ object EGAFunction {
             sender.sendMessage("已开启本群人员变化提醒")
         }
         config.memberChange = !config.memberChange
+    }
+
+    suspend fun checkLevel(event: MemberJoinEvent, config: GroupAuthSetting): Boolean {
+        val level = event.member.queryProfile().qLevel
+        if (config.levelLimit > level) {
+            event.group.sendMessage("${event.member.nameCardOrNick}[${event.member.id}] 的加群请求因QQ等级小于${config.levelLimit}被踢出")
+            event.member.kick("本群不欢迎${level}级以下QQ加入")
+            return true
+        }
+        return false
     }
 }

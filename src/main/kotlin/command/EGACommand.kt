@@ -54,6 +54,14 @@ object EGACommand : CompositeCommand(
         EGAFunction.changeAuthTime(sender, sender.group.id, time)
     }
 
+    @SubCommand("levelLimit", "加群等级限制")
+    @Description("更改本群加群等级限制，-1不限制")
+    suspend fun levelLimit(sender: CommandSender, level: Int) {
+        if (!EGAFunction.isGroupMessage(sender)) return
+        sender as GroupAwareCommandSender
+        EGAFunction.changeLevelLimit(sender, sender.group.id, level)
+    }
+
     @SubCommand("request", "进群审核")
     @Description("开关本群机器人自动进群审核")
     suspend fun request(sender: CommandSender, method: Int) {
