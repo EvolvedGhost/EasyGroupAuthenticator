@@ -39,17 +39,23 @@ class EGAAuthData {
         GlobalScope.launch {
             while (true) {
                 delay(EGAConfig.timeoutDetectCycle * 1000)
-                val timestamp = System.currentTimeMillis()
-                authMutex.withLock {
-                    val iterator = authData.iterator()
-                    while (iterator.hasNext()) {
-                        val authInfo = iterator.next()
-                        if (timestamp > authInfo.timeout) {
-                            try {
-                                verifyFailure(authInfo.event)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                GlobalScope.launch {
+                    val timestamp = System.currentTimeMillis()
+                    authMutex.withLock {
+                        try {
+                            val iterator = authData.iterator()
+                            while (iterator.hasNext()) {
+                                val authInfo = iterator.next()
+                                if (timestamp > authInfo.timeout) {
+                                    try {
+                                        verifyFailure(authInfo.event)
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                }
                             }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
                     }
                 }

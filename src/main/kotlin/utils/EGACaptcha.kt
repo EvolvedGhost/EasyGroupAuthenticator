@@ -37,7 +37,7 @@ object EGACaptcha {
     }
 
     private fun arithmeticCaptcha(hard: Boolean): Captcha {
-        val captcha = ArithmeticCaptcha(220, 48)
+        val captcha = ArithmeticCaptcha(150, 48)
         val out = ByteArrayOutputStream()
         if (hard) {
             captcha.len = 4
