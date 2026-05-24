@@ -10,12 +10,21 @@ import net.mamoe.mirai.console.command.CompositeCommand
 import net.mamoe.mirai.console.command.GroupAwareCommandSender
 import net.mamoe.mirai.message.data.MessageChain
 
+/**
+ * 插件指令注册中心。
+ *
+ * 主指令为 `/ega`（别名 `/群验证`），包含插件配置、验证码设置、审核管理、黑名单、欢迎消息等子指令。
+ * 大部分子指令需要在群聊环境中执行，且要求机器人为群管理员。
+ */
 object EGACommand : CompositeCommand(
     EasyGroupAuthenticator,
     primaryName = "ega",
     secondaryNames = arrayOf("群验证"),
     description = "群验证管理指令",
 ) {
+
+    // ======================== 插件管理 ========================
+
     @SubCommand("reload", "重载")
     @Description("重载本插件的配置项")
     suspend fun reload(sender: CommandSender) {
@@ -29,6 +38,8 @@ object EGACommand : CompositeCommand(
     suspend fun enable(sender: CommandSender) {
         EGAFunction.enablePlugin(sender)
     }
+
+    // ======================== 验证码设置 ========================
 
     @SubCommand("auth", "验证码")
     @Description("更改本群验证码方式")
@@ -62,6 +73,8 @@ object EGACommand : CompositeCommand(
         EGAFunction.changeLevelLimit(sender, sender.group.id, level)
     }
 
+    // ======================== 自动审核设置 ========================
+
     @SubCommand("request", "进群审核")
     @Description("开关本群机器人自动进群审核")
     suspend fun request(sender: CommandSender, method: Int) {
@@ -75,7 +88,7 @@ object EGACommand : CompositeCommand(
     suspend fun keywordAdd(sender: CommandSender, keyword: String) {
         if (!EGAFunction.isGroupMessage(sender)) return
         sender as GroupAwareCommandSender
-        EGAFunction.requestKeywordAdd(sender, sender.group.id, keyword, false)
+        EGAFunction.requestKeywordAdd(sender, sender.group.id, keyword, isNegative = false)
     }
 
     @SubCommand("nKeywordAdd", "屏蔽词增加")
@@ -83,7 +96,7 @@ object EGACommand : CompositeCommand(
     suspend fun nKeywordAdd(sender: CommandSender, keyword: String) {
         if (!EGAFunction.isGroupMessage(sender)) return
         sender as GroupAwareCommandSender
-        EGAFunction.requestKeywordAdd(sender, sender.group.id, keyword, true)
+        EGAFunction.requestKeywordAdd(sender, sender.group.id, keyword, isNegative = true)
     }
 
     @SubCommand("keywordRemove", "关键词移除")
@@ -91,7 +104,7 @@ object EGACommand : CompositeCommand(
     suspend fun keywordRemove(sender: CommandSender, keyword: String) {
         if (!EGAFunction.isGroupMessage(sender)) return
         sender as GroupAwareCommandSender
-        EGAFunction.requestKeywordRemove(sender, sender.group.id, keyword, false)
+        EGAFunction.requestKeywordRemove(sender, sender.group.id, keyword, isNegative = false)
     }
 
     @SubCommand("nKeywordRemove", "屏蔽词移除")
@@ -99,8 +112,10 @@ object EGACommand : CompositeCommand(
     suspend fun nKeywordRemove(sender: CommandSender, keyword: String) {
         if (!EGAFunction.isGroupMessage(sender)) return
         sender as GroupAwareCommandSender
-        EGAFunction.requestKeywordRemove(sender, sender.group.id, keyword, true)
+        EGAFunction.requestKeywordRemove(sender, sender.group.id, keyword, isNegative = true)
     }
+
+    // ======================== 黑名单管理 ========================
 
     @SubCommand("blackListAdd", "黑名单增加")
     @Description("增加禁入本群的用户")
@@ -118,6 +133,8 @@ object EGACommand : CompositeCommand(
         EGAFunction.blackListRemove(sender, sender.group.id, qq)
     }
 
+    // ======================== 欢迎消息管理 ========================
+
     @SubCommand("welcome", "欢迎信息")
     @Description("开启并编辑本群新人欢迎信息")
     suspend fun welcomeMessage(sender: CommandSender, vararg message: MessageChain) {
@@ -133,6 +150,8 @@ object EGACommand : CompositeCommand(
         sender as GroupAwareCommandSender
         EGAFunction.welcomeMessageClear(sender, sender.group.id)
     }
+
+    // ======================== 成员变动提醒 ========================
 
     @SubCommand("memberChange", "变动提醒")
     @Description("开关本群人员变动的提示信息")
